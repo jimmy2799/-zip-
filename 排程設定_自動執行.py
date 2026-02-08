@@ -17,7 +17,7 @@ class SchedulerSetup:
     
     def __init__(self):
         self.python_exe = sys.executable
-        self.script_path = Path(__file__).parent / "爬期貨ZIP檔案_優化版.py"
+        self.script_path = Path(__file__).parent / "scripts" / "爬期貨ZIP檔案_優化版.py"
         self.task_name = "期貨檔案自動下載"
         
     def check_requirements(self):
