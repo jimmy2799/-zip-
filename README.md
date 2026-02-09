@@ -13,7 +13,7 @@
 
 ```bash
 # 下載檔案
-python 爬期貨ZIP檔案_優化版.py
+python 爬期貨ZIP檔案_精簡版.py
 
 # 設定自動排程
 python 排程設定_自動執行.py
@@ -23,4 +23,4 @@ python 排程設定_自動執行.py
 
 預設下載目錄：`E:/rpt`
 
-如需更改，請修改 `爬期貨ZIP檔案_優化版.py` 中的 `CONFIG['path']`。
+如需更改，請修改 `爬期貨ZIP檔案_精簡版.py` 中的 `CONFIG['path']`。

@@ -17,7 +17,7 @@ class SchedulerSetup:
     
     def __init__(self):
         self.python_exe = sys.executable
-        self.script_path = Path(__file__).parent / "scripts" / "爬期貨ZIP檔案_優化版.py"
+        self.script_path = Path(__file__).parent / "爬期貨ZIP檔案_精簡版.py"
         self.task_name = "期貨檔案自動下載"
         
     def check_requirements(self):
@@ -80,19 +80,19 @@ class SchedulerSetup:
             print(f"錯誤輸出: {e.stderr}")
             return False
             
-    def create_saturday_task(self, run_time="10:00"):
-        """創建週六執行任務"""
-        print(f"\n=== 設定週六自動執行任務 ===")
-        print(f"任務名稱: {self.task_name}_週六版")
-        print(f"執行時間: 每週六 {run_time}")
+    def create_weekday_task(self, run_time="10:00"):
+        """創建工作日執行任務"""
+        print(f"\n=== 設定工作日自動執行任務 ===")
+        print(f"任務名稱: {self.task_name}_工作日版")
+        print(f"執行時間: 週一至週五 {run_time}")
         
-        task_name = f"{self.task_name}_週六版"
+        task_name = f"{self.task_name}_工作日版"
         command = [
             "schtasks", "/create",
             "/tn", task_name,
             "/tr", f'"{self.python_exe}" "{self.script_path}"',
             "/sc", "weekly",
-            "/d", "SAT",
+            "/d", "MON,TUE,WED,THU,FRI",
             "/st", run_time,
             "/ru", "SYSTEM",
             "/f"
@@ -310,7 +310,7 @@ pause >nul
                 time_input = input("設定執行時間 (格式: HH:MM, 預設: 10:00): ").strip()
                 if not time_input:
                     time_input = "10:00"
-                self.create_saturday_task(time_input)
+                self.create_weekday_task(time_input)
                 
             elif choice == "3":
                 print("可選頻率: daily, weekly, monthly, once")
