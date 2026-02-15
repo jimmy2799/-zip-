@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 
 # ========== 設定 ==========
 CONFIG = {
-    'url': 'http://www.taifex.com.tw/cht/3/dlFutPrevious30DaysSalesData',
+    'url': 'https://www.taifex.com.tw/cht/3/dlFutPrevious30DaysSalesData',
     'path': 'E:/rpt',
     'workers': 5,
     'timeout': 30,
@@ -78,14 +78,22 @@ def run_download():
     
     # 找出最新日期並排除
     dates = []
+    date_map = {}  # 建立文件名到日期的映射
     for link in links:
-        match = re.search(r'(\d{4})(\d{2})(\d{2})', os.path.basename(link))
+        filename = os.path.basename(link)
+        # 支援 Daily_YYYY_MM_DD.zip 格式
+        match = re.search(r'Daily_(\d{4})_(\d{2})_(\d{2})\.zip', filename)
         if match:
-            dates.append(datetime(int(match.group(1)), int(match.group(2)), int(match.group(3))))
+            date_obj = datetime(int(match.group(1)), int(match.group(2)), int(match.group(3)))
+            dates.append(date_obj)
+            date_map[filename] = date_obj
     
-    if dates:
-        max_date = max(dates)
-        logger.info(f"最新檔案日期: {max_date.strftime('%Y-%m-%d')} (將跳過)")
+    if not dates:
+        logger.info("未找到有效的日期格式文件")
+        return
+    
+    max_date = max(dates)
+    logger.info(f"最新檔案日期: {max_date.strftime('%Y-%m-%d')} (將跳過)")
     
     # 下載（排除最新檔案）
     with requests.Session() as session:
@@ -94,10 +102,18 @@ def run_download():
             futures = {}
             for link in links:
                 filename = os.path.basename(link)
-                match = re.search(r'(\d{4})(\d{2})(\d{2})', filename)
-                if match and dates and datetime(int(match.group(1)), int(match.group(2)), int(match.group(3))) == max(dates):
-                    logger.info(f"跳過最新: {filename}")
+                
+                # 檢查是否為最新日期文件
+                if filename in date_map and date_map[filename] == max_date:
+                    logger.info(f"跳過最新: {filename} ({date_map[filename].strftime('%Y-%m-%d')})")
                     continue
+                
+                # 檢查文件是否已存在
+                filepath = Path(CONFIG['path']) / filename
+                if filepath.exists():
+                    logger.info(f"已存在: {filename}")
+                    continue
+                
                 futures[executor.submit(download_file, link, session)] = filename
             
             completed = 0
@@ -119,7 +135,7 @@ def run_download():
 def setup_schedule():
     """設定自動排程"""
     print("\n=== 設定自動排程 ===")
-    print("1. 每周日 22:00")
+    print("1. 每周日 22:05")
     print("2. 工作日 10:00")
     print("3. 每日 09:00")
     print("0. 取消")
@@ -131,7 +147,7 @@ def setup_schedule():
     script_path = Path(__file__).resolve()
     
     if choice == "1":
-        cmd = f'schtasks /create /tn "{task_name}" /tr "\\"{python_exe}\" \\"{script_path}\" download" /sc weekly /d SUN /st 22:00 /f'
+        cmd = f'schtasks /create /tn "{task_name}" /tr "\\"{python_exe}\" \\"{script_path}\" download" /sc weekly /d SUN /st 22:05 /f'
     elif choice == "2":
         cmd = f'schtasks /create /tn "{task_name}" /tr "\\"{python_exe}\" \\"{script_path}\" download" /sc weekly /d MON,TUE,WED,THU,FRI /st 10:00 /f'
     elif choice == "3":
